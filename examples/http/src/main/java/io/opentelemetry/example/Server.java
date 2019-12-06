@@ -18,9 +18,7 @@ package io.opentelemetry.example;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import io.opentelemetry.OpenTelemetry;
 import io.opentelemetry.context.propagation.HttpTextFormat;
-import io.opentelemetry.distributedcontext.DistributedContextManager;
 import io.opentelemetry.exporters.inmemory.InMemorySpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SpanData;
@@ -139,21 +137,30 @@ public class Server {
     }
 
     public static void main(String[] args) throws Exception {
-        Server s = new Server();
+        final Server s = new Server();
         // Gracefully close the server
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> s.stop()));
-        // Print new traces every 1s
-        Thread t = new Thread(() -> {
-            while(true) {
-                try {
-                    Thread.sleep(1000);
-                    for (SpanData spanData : s.inMemexporter.getFinishedSpanItems()) {
-                        System.out.println("  - " + spanData);
-                    }
-                    s.inMemexporter.reset();
-                } catch (Exception e) {  }
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                s.stop();
             }
         });
+        // Print new traces every 1s
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                        for (SpanData spanData : s.inMemexporter.getFinishedSpanItems()) {
+                            System.out.println("  - " + spanData);
+                        }
+                        s.inMemexporter.reset();
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        };
         t.start();
     }
 }

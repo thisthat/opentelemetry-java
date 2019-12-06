@@ -3,9 +3,16 @@ plugins {
 }
 
 group 'io.opentelemetry'
-version '1.0-SNAPSHOT'
+version '0.3.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.7
+
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
 
 repositories {
     mavenCentral()

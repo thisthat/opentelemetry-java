@@ -93,21 +93,24 @@ public class Client {
 
     public static void main(String[] args) throws Exception {
         // Perform request every 5s
-        Thread t = new Thread(() -> {
-            while(true) {
-                try {
-                    Client c = new Client();
-                    Thread.sleep(5000);
-                    for (SpanData spanData : c.inMemexporter.getFinishedSpanItems()) {
-                        System.out.println("  - " + spanData);
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Client c = new Client();
+                        Thread.sleep(5000);
+                        for (SpanData spanData : c.inMemexporter.getFinishedSpanItems()) {
+                            System.out.println("  - " + spanData);
+                        }
+                        c.inMemexporter.reset();
+                    } catch (Exception e) {
+                        System.out.println(e.getMessage());
+                        e.printStackTrace(System.out);
                     }
-                    c.inMemexporter.reset();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace(System.out);
                 }
             }
-        });
+        };
         t.start();
     }
 }
